@@ -107,6 +107,7 @@
       to { opacity: 1; transform: scale(1); }
     }
 
+    /* شاشة الاستقبال */
     #stage-concierge {
       flex-direction: column;
       align-items: center;
@@ -281,6 +282,7 @@
       background: rgba(197, 160, 89, 0.15);
     }
 
+    /* صالة العرض */
     #stage-showroom {
       flex-direction: column;
       padding: 2rem;
@@ -433,6 +435,65 @@
       height: 150px;
     }
 
+    .complete-order-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.75rem 1.8rem;
+      border-radius: 25px;
+      border: none;
+      cursor: pointer;
+      margin-top: 0.4rem;
+      transition: all 0.3s;
+      font-size: 0.95rem;
+    }
+
+    .complete-order-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    /* شاشة التوديع الفاخرة */
+    #stage-farewell {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .farewell-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 0 35px var(--accent-gold-glow);
+      border-radius: 24px;
+      padding: 3rem 2rem;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: popIn 0.5s ease forwards;
+    }
+
+    .farewell-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--accent-gold);
+      margin-bottom: 1rem;
+    }
+
+    .farewell-body {
+      font-size: 1.35rem;
+      line-height: 1.8;
+      color: var(--text-main);
+      margin-bottom: 1.5rem;
+    }
+
+    .radar-reset-countdown {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
     #radar-video, #radar-canvas {
       display: none;
     }
@@ -449,6 +510,7 @@
   </header>
 
   <div class="stage-container">
+    <!-- المرحلة 1: الاستقبال والمحادثة -->
     <section id="stage-concierge" class="view-stage active">
       <div class="orb-wrapper" id="orb-trigger">
         <div class="radar-ring"></div>
@@ -475,6 +537,7 @@
       </div>
     </section>
 
+    <!-- المرحلة 2: صالة العرض والسلة -->
     <section id="stage-showroom" class="view-stage">
       <div class="showroom-header">
         <div>
@@ -500,7 +563,23 @@
         <div class="qr-container">
           <canvas id="qr-canvas"></canvas>
           <span style="font-size: 0.85rem; color: var(--text-muted);">امسح الرمز لتأكيد الطلب بواتساب</span>
+          <button class="complete-order-btn" onclick="triggerFarewell(event)">✓ تم إرسال الطلب</button>
         </div>
+      </div>
+    </section>
+
+    <!-- المرحلة 3: شاشة التوديع -->
+    <section id="stage-farewell" class="view-stage">
+      <div class="farewell-card">
+        <div class="orb-wrapper" style="width: 140px; height: 140px; margin: 0 auto 1.5rem auto;">
+          <div class="radar-ring"></div>
+          <div class="ai-orb" id="farewell-orb" style="width: 80px; height: 80px;"></div>
+        </div>
+        <h2 class="farewell-title">سعدنا بخدمتك</h2>
+        <p class="farewell-body" id="farewell-text">
+          تتهنّى بقطعتك يا بعدي، ملبوس العافية والهناء.. شرّفتنا وننتظر شوفتك دايم!
+        </p>
+        <span class="radar-reset-countdown" id="farewell-timer">جاري الاستعداد للعميل التالي...</span>
       </div>
     </section>
   </div>
@@ -549,10 +628,12 @@
     let isListening = false;
     let dialogueStage = 1;
 
-    // ملف الترحيب المعتمد
+    // ملفات الصوت المسجلة
     const welcomeAudio = new Audio('welcome-mp3.mp3');
+    const goodbyeAudio = new Audio('goodbye.mp3');
 
     const orb = document.getElementById('voice-orb');
+    const farewellOrb = document.getElementById('farewell-orb');
     const welcomeMsg = document.getElementById('welcome-message');
     const actionWrapper = document.getElementById('action-wrapper');
     const quickOpts = document.getElementById('quick-options');
@@ -561,26 +642,20 @@
     const micBtn = document.getElementById('voice-mic-btn');
     const micLabel = document.getElementById('mic-status-label');
 
-    // دالة التحدث الشاملة لكل المراحل
-    function aiSpeak(text, optionalAudioFile) {
-      // إذا كان هناك ملف MP3 متوفر ومحدد يتم تشغيله
-      if (optionalAudioFile) {
-        const sound = new Audio(optionalAudioFile);
-        sound.play().then(() => {
-          orb.classList.add('speaking');
-        }).catch(() => {
-          // في حال عدم توفر الملف، يتم استخدام محرك النطق الآلي كبديل
-          speakTTS(text);
-        });
-        sound.onended = () => orb.classList.remove('speaking');
-        return;
-      }
+    function playAudio(audioObj, fallbackText, targetOrb) {
+      audioObj.currentTime = 0;
+      audioObj.play().then(() => {
+        if (targetOrb) targetOrb.classList.add('speaking');
+      }).catch(() => {
+        speakTTS(fallbackText, targetOrb);
+      });
 
-      // محرك النطق الصوتي الفوري
-      speakTTS(text);
+      audioObj.onended = () => {
+        if (targetOrb) targetOrb.classList.remove('speaking');
+      };
     }
 
-    function speakTTS(text) {
+    function speakTTS(text, targetOrb) {
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
 
@@ -592,25 +667,11 @@
       const arVoice = voices.find(v => v.lang.includes('ar') || v.lang.includes('SA'));
       if (arVoice) utterance.voice = arVoice;
 
-      utterance.onstart = () => orb.classList.add('speaking');
-      utterance.onend = () => orb.classList.remove('speaking');
-      utterance.onerror = () => orb.classList.remove('speaking');
+      utterance.onstart = () => { if (targetOrb) targetOrb.classList.add('speaking'); };
+      utterance.onend = () => { if (targetOrb) targetOrb.classList.remove('speaking'); };
+      utterance.onerror = () => { if (targetOrb) targetOrb.classList.remove('speaking'); };
 
       window.speechSynthesis.speak(utterance);
-    }
-
-    function playWelcomeAudio() {
-      welcomeAudio.currentTime = 0;
-      welcomeAudio.play().then(() => {
-        orb.classList.add('speaking');
-      }).catch(err => {
-        // إذا فشل الـ MP3 ينطق بالصوت الآلي
-        speakTTS(welcomeMsg.innerText);
-      });
-
-      welcomeAudio.onended = () => {
-        orb.classList.remove('speaking');
-      };
     }
 
     function handleGlobalTouch() {
@@ -622,7 +683,7 @@
         } catch(e) {}
         
         playChime();
-        playWelcomeAudio();
+        playAudio(welcomeAudio, welcomeMsg.innerText, orb);
 
         if (!cameraActive) {
           initCameraRadar();
@@ -706,56 +767,48 @@
       if (dialogueStage === 1) {
         if (text.includes("جديد") || text.includes("تشكيل") || text.includes("استكشاف") || text.includes("كولكشن")) {
           handleCustomerChoice('new_collection');
-        } else if (text.includes("طلب") || text.includes("معين") || text.includes("مقاس") || text.includes("قص") || text.includes("تيشيرت") || text.includes("هودي")) {
-          handleCustomerChoice('custom_request');
         } else {
-          handleCustomerChoice('new_collection');
+          handleCustomerChoice('custom_request');
         }
       } else if (dialogueStage === 2) {
-        if (text.includes("هودي") || text.includes("شتوي") || text.includes("جاكيت")) {
+        if (text.includes("هودي") || text.includes("شتوي")) {
           handleStageTwoChoice('hoodies');
         } else if (text.includes("سدو") || text.includes("تراث") || text.includes("تيشيرت")) {
           handleStageTwoChoice('tshirts');
-        } else if (text.includes("واسع") || text.includes("اوفر") || text.includes("بوكس")) {
-          handleStageTwoChoice('oversized');
         } else {
-          handleStageTwoChoice('all');
+          handleStageTwoChoice('oversized');
         }
       }
     }
 
-    // المرحلة الأولى: التحدث بالسؤال الثاني
     function handleCustomerChoice(choice, e) {
       if (e) e.stopPropagation();
       handleGlobalTouch();
       dialogueStage = 2;
       playChime();
 
-      let spokenSentence = "";
+      let textToSay = "";
 
       if (choice === 'new_collection') {
-        spokenSentence = "يا هلا والله.. التشكيلة هذي تميزت بقصات البوكس فيت والستريت وير الفاخر. تحب نركز على التيشيرتات بتطريزات السدو والتراث، ولا الهوديات الثقيلة؟";
-        welcomeMsg.innerText = spokenSentence;
+        textToSay = "يا هلا والله.. التشكيلة هذي تميزت بقصات البوكس فيت والستريت وير الفاخر. تحب نركز على التيشيرتات بتطريزات السدو والتراث، ولا الهوديات الثقيلة؟";
+        welcomeMsg.innerText = textToSay;
         quickOpts.innerHTML = `
           <button class="opt-chip" onclick="handleStageTwoChoice('tshirts', event)">تيشيرتات البوكس فيت (سدو وتراث)</button>
           <button class="opt-chip" onclick="handleStageTwoChoice('hoodies', event)">الهوديات الشتوية الفاخرة</button>
         `;
-        // يتكلم البائع صوتياً هنا فوراً
-        aiSpeak(spokenSentence, 'step2-new.mp3');
       } else {
-        spokenSentence = "سم وأبشر.. وش المناسبة أو الستايل اللي تفضله أكثر؟ قصة واسعة كاجوال (Oversized) ولا نساعدك في تحديد المقاس؟";
-        welcomeMsg.innerText = spokenSentence;
+        textToSay = "أبشر بعزك.. وش المناسبة أو الستايل اللي تفضله أكثر؟ قصة واسعة كاجوال (Oversized) ولا نساعدك في تحديد المقاس؟";
+        welcomeMsg.innerText = textToSay;
         quickOpts.innerHTML = `
           <button class="opt-chip" onclick="handleStageTwoChoice('oversized', event)">قصة واسعة مريحة (Oversized)</button>
           <button class="opt-chip" onclick="handleStageTwoChoice('sizes_help', event)">استعراض المقاسات والتفاصيل</button>
         `;
-        // يتكلم البائع صوتياً هنا فوراً
-        aiSpeak(spokenSentence, 'step2-custom.mp3');
       }
+
+      speakTTS(textToSay, orb);
       micLabel.innerText = "تحدث بصوتك أو اختر للإكمال";
     }
 
-    // المرحلة الثانية: التحدث بعبارة التأكيد وتوليد الزر النهائي
     function handleStageTwoChoice(categoryKey, e) {
       if (e) e.stopPropagation();
       quickOpts.style.display = 'none';
@@ -764,9 +817,7 @@
 
       const finalSentence = "اختيار رائع وذوق مميز! جهزت لك القطع المناسبة لاختيارك.. تفضل بالدخول";
       welcomeMsg.innerText = finalSentence;
-      
-      // ينطق البائع صوتياً قبل الدخول
-      aiSpeak(finalSentence, 'step3-ready.mp3');
+      speakTTS(finalSentence, orb);
 
       let btnLabel = "👉 الدخول واستعراض التشكيلة المختارة";
       if (categoryKey === 'tshirts') btnLabel = "👉 الدخول لاستعراض تيشيرتات السدو والتراث";
@@ -785,6 +836,23 @@
       renderProducts(filterCategory);
     }
 
+    // تفعيل مرحلة التوديع عند تأكيد الطلب
+    function triggerFarewell(e) {
+      if (e) e.stopPropagation();
+      goToStage('farewell');
+      playChime();
+
+      const farewellPhrase = "تتهنّى بقطعتك يا بعدي، ملبوس العافية والهناء.. شرّفتنا وننتظر شوفتك دايم!";
+      playAudio(goodbyeAudio, farewellPhrase, farewellOrb);
+
+      // إعادة التعيين لوضع الرادار التلقائي بعد 6 ثوانٍ
+      setTimeout(() => {
+        cart = [];
+        updateCartUI();
+        goToStage('concierge');
+      }, 6000);
+    }
+
     function goToStage(stageName) {
       document.querySelectorAll('.view-stage').forEach(el => el.classList.remove('active'));
       if (stageName === 'concierge') {
@@ -799,8 +867,10 @@
         actionWrapper.style.display = 'none';
         welcomeMsg.innerText = "حيّاك الله ونوّرت المكان.. ودك تستكشف التشكيلة الجديدة، ولا نساعدك بطلب معين؟";
         micLabel.innerText = "انقر وتحدث بصوتك أو اختر من الأسفل";
-      } else {
+      } else if (stageName === 'showroom') {
         document.getElementById('stage-showroom').classList.add('active');
+      } else if (stageName === 'farewell') {
+        document.getElementById('stage-farewell').classList.add('active');
       }
     }
 
@@ -905,7 +975,7 @@
                 if (!audioUnlocked) {
                   handleGlobalTouch();
                 } else if (welcomeAudio.paused && dialogueStage === 1) {
-                  playWelcomeAudio();
+                  playAudio(welcomeAudio, welcomeMsg.innerText, orb);
                 }
               }
             }
