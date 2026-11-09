@@ -107,7 +107,6 @@
       to { opacity: 1; transform: scale(1); }
     }
 
-    /* شاشة المحادثة والاستقبال */
     #stage-concierge {
       flex-direction: column;
       align-items: center;
@@ -119,52 +118,77 @@
 
     .orb-wrapper {
       position: relative;
-      width: 200px;
-      height: 200px;
+      width: 220px;
+      height: 220px;
       margin: 1.5rem auto;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
+    /* دوائر الهالة وموجات الرادار المتدفقة */
     .radar-ring {
       position: absolute;
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      border: 1px solid var(--border-color);
-      animation: radarSweep 3s infinite linear;
+      border: 2px solid var(--accent-gold);
+      box-shadow: 0 0 25px var(--accent-gold-glow);
+      animation: radarSweep 3s infinite ease-out;
+      pointer-events: none;
     }
 
     .radar-ring:nth-child(2) {
-      width: 140%;
-      height: 140%;
       animation-delay: 1.5s;
     }
 
     @keyframes radarSweep {
-      0% { transform: scale(0.8); opacity: 0.8; }
-      100% { transform: scale(1.6); opacity: 0; }
+      0% {
+        transform: scale(0.7);
+        opacity: 0.85;
+      }
+      100% {
+        transform: scale(1.75);
+        opacity: 0;
+      }
     }
 
+    /* الكرة الذهبية مع النبض والهالة المستمرة */
     .ai-orb {
       width: 110px;
       height: 110px;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #eedcb2, var(--accent-gold) 60%, #4a3818 100%);
-      box-shadow: 0 0 35px var(--accent-gold-glow);
+      background: radial-gradient(circle at 35% 35%, #fff5db, var(--accent-gold) 55%, #3a280c 100%);
+      box-shadow: 0 0 35px var(--accent-gold), 0 0 70px var(--accent-gold-glow);
       transition: all 0.4s ease;
       z-index: 2;
+      animation: idleBreathing 2.6s infinite ease-in-out alternate;
+    }
+
+    @keyframes idleBreathing {
+      0% {
+        transform: scale(0.96);
+        box-shadow: 0 0 25px rgba(197, 160, 89, 0.5), 0 0 50px rgba(197, 160, 89, 0.25);
+      }
+      100% {
+        transform: scale(1.06);
+        box-shadow: 0 0 45px rgba(197, 160, 89, 0.85), 0 0 85px rgba(197, 160, 89, 0.55);
+      }
     }
 
     .ai-orb.speaking {
-      animation: orbPulse 0.9s infinite alternate;
-      box-shadow: 0 0 60px rgba(197, 160, 89, 0.95);
+      animation: orbPulse 0.8s infinite alternate ease-in-out !important;
     }
 
     @keyframes orbPulse {
-      0% { transform: scale(1); }
-      100% { transform: scale(1.2); }
+      0% {
+        transform: scale(1.02);
+        box-shadow: 0 0 40px rgba(197, 160, 89, 0.7);
+      }
+      100% {
+        transform: scale(1.22);
+        box-shadow: 0 0 80px rgba(197, 160, 89, 1), 0 0 120px rgba(197, 160, 89, 0.65);
+      }
     }
 
     .welcome-text {
@@ -282,7 +306,6 @@
       background: rgba(197, 160, 89, 0.15);
     }
 
-    /* صالة العرض */
     #stage-showroom {
       flex-direction: column;
       padding: 2rem;
@@ -453,7 +476,6 @@
       box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
     }
 
-    /* شاشة التوديع */
     #stage-farewell {
       flex-direction: column;
       align-items: center;
@@ -587,7 +609,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
   <script>
-    const STORE_WHATSAPP_NUMBER = "966500000000";
+    // رقم الواتساب المعتمد للمتجر
+    const STORE_WHATSAPP_NUMBER = "966502777884";
 
     const catalog = [
       {
@@ -625,7 +648,6 @@
     let isListening = false;
     let dialogueStage = 1;
 
-    // مشغل الصوت الرئيسي لملفات الـ MP3
     let currentAudio = null;
 
     const orb = document.getElementById('voice-orb');
@@ -638,7 +660,6 @@
     const micBtn = document.getElementById('voice-mic-btn');
     const micLabel = document.getElementById('mic-status-label');
 
-    // دالة تشغيل أي ملف صوتي MP3 مع توهج الكرة
     function playMp3Track(filename, targetOrb) {
       if (currentAudio) {
         currentAudio.pause();
@@ -764,7 +785,6 @@
       }
     }
 
-    // المرحلة الأولى: تشغيل ملف الصوت المخصص للمرحلة الثانية
     function handleCustomerChoice(choice, e) {
       if (e) e.stopPropagation();
       handleGlobalTouch();
@@ -777,7 +797,6 @@
           <button class="opt-chip" onclick="handleStageTwoChoice('tshirts', event)">تيشيرتات البوكس فيت (سدو وتراث)</button>
           <button class="opt-chip" onclick="handleStageTwoChoice('hoodies', event)">الهوديات الشتوية الفاخرة</button>
         `;
-        // تشغيل الملف المرفوع للمسار الأول
         playMp3Track('step2-new.mp3', orb);
       } else {
         welcomeMsg.innerText = "أبشر بعزك.. وش المناسبة أو الستايل اللي تفضله أكثر؟ قصة واسعة كاجوال (Oversized) ولا نساعدك في تحديد المقاس؟";
@@ -785,13 +804,11 @@
           <button class="opt-chip" onclick="handleStageTwoChoice('oversized', event)">قصة واسعة مريحة (Oversized)</button>
           <button class="opt-chip" onclick="handleStageTwoChoice('sizes_help', event)">استعراض المقاسات والتفاصيل</button>
         `;
-        // تشغيل الملف المرفوع للمسار الثاني
         playMp3Track('step2-custom.mp3', orb);
       }
       micLabel.innerText = "تحدث بصوتك أو اختر للإكمال";
     }
 
-    // المرحلة الثانية: تشغيل ملف التأكيد وتوليد الزر النهائي
     function handleStageTwoChoice(categoryKey, e) {
       if (e) e.stopPropagation();
       quickOpts.style.display = 'none';
@@ -799,8 +816,6 @@
       playChime();
 
       welcomeMsg.innerText = "اختيار رائع وذوق مميز! جهزت لك القطع المناسبة لاختيارك.. تفضل بالدخول";
-      
-      // تشغيل ملف الاستعداد للدخول
       playMp3Track('step3-ready.mp3', orb);
 
       let btnLabel = "👉 الدخول واستعراض التشكيلة المختارة";
@@ -820,13 +835,11 @@
       renderProducts(filterCategory);
     }
 
-    // تشغيل ملف التوديع عند تأكيد الطلب
     function triggerFarewell(e) {
       if (e) e.stopPropagation();
       goToStage('farewell');
       playChime();
 
-      // تشغيل ملف التوديع goodbye.mp3
       playMp3Track('goodbye.mp3', farewellOrb);
 
       setTimeout(() => {
