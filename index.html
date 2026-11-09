@@ -107,7 +107,6 @@
       to { opacity: 1; transform: scale(1); }
     }
 
-    /* شاشة الاستقبال */
     #stage-concierge {
       flex-direction: column;
       align-items: center;
@@ -282,7 +281,6 @@
       background: rgba(197, 160, 89, 0.15);
     }
 
-    /* صالة العرض */
     #stage-showroom {
       flex-direction: column;
       padding: 2rem;
@@ -453,7 +451,6 @@
       box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
     }
 
-    /* شاشة التوديع الفاخرة */
     #stage-farewell {
       flex-direction: column;
       align-items: center;
@@ -510,7 +507,6 @@
   </header>
 
   <div class="stage-container">
-    <!-- المرحلة 1: الاستقبال والمحادثة -->
     <section id="stage-concierge" class="view-stage active">
       <div class="orb-wrapper" id="orb-trigger">
         <div class="radar-ring"></div>
@@ -537,7 +533,6 @@
       </div>
     </section>
 
-    <!-- المرحلة 2: صالة العرض والسلة -->
     <section id="stage-showroom" class="view-stage">
       <div class="showroom-header">
         <div>
@@ -568,7 +563,6 @@
       </div>
     </section>
 
-    <!-- المرحلة 3: شاشة التوديع -->
     <section id="stage-farewell" class="view-stage">
       <div class="farewell-card">
         <div class="orb-wrapper" style="width: 140px; height: 140px; margin: 0 auto 1.5rem auto;">
@@ -628,9 +622,8 @@
     let isListening = false;
     let dialogueStage = 1;
 
-    // ملفات الصوت المسجلة
+    // كائن ملف الترحيب المعتمد
     const welcomeAudio = new Audio('welcome-mp3.mp3');
-    const goodbyeAudio = new Audio('goodbye.mp3');
 
     const orb = document.getElementById('voice-orb');
     const farewellOrb = document.getElementById('farewell-orb');
@@ -642,36 +635,48 @@
     const micBtn = document.getElementById('voice-mic-btn');
     const micLabel = document.getElementById('mic-status-label');
 
-    function playAudio(audioObj, fallbackText, targetOrb) {
-      audioObj.currentTime = 0;
-      audioObj.play().then(() => {
-        if (targetOrb) targetOrb.classList.add('speaking');
-      }).catch(() => {
-        speakTTS(fallbackText, targetOrb);
-      });
-
-      audioObj.onended = () => {
-        if (targetOrb) targetOrb.classList.remove('speaking');
-      };
-    }
-
-    function speakTTS(text, targetOrb) {
+    // محرك نطق مستقر ومحمي من التوقف
+    function speakTextRobust(text, targetOrb) {
       if (!('speechSynthesis' in window)) return;
+
+      // إنهاء أي نطق سابق معلق
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ar-SA';
-      utterance.rate = 0.95;
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ar-SA';
+        utterance.rate = 0.95;
 
-      const voices = window.speechSynthesis.getVoices();
-      const arVoice = voices.find(v => v.lang.includes('ar') || v.lang.includes('SA'));
-      if (arVoice) utterance.voice = arVoice;
+        // اختيار أفضل صوت عربي متاح في النظام
+        const voices = window.speechSynthesis.getVoices();
+        const arVoice = voices.find(v => v.lang.startsWith('ar') || v.lang.includes('SA'));
+        if (arVoice) utterance.voice = arVoice;
 
-      utterance.onstart = () => { if (targetOrb) targetOrb.classList.add('speaking'); };
-      utterance.onend = () => { if (targetOrb) targetOrb.classList.remove('speaking'); };
-      utterance.onerror = () => { if (targetOrb) targetOrb.classList.remove('speaking'); };
+        utterance.onstart = () => {
+          if (targetOrb) targetOrb.classList.add('speaking');
+        };
+        utterance.onend = () => {
+          if (targetOrb) targetOrb.classList.remove('speaking');
+        };
+        utterance.onerror = () => {
+          if (targetOrb) targetOrb.classList.remove('speaking');
+        };
 
-      window.speechSynthesis.speak(utterance);
+        window.speechSynthesis.speak(utterance);
+      }, 50);
+    }
+
+    function playWelcomeAudio() {
+      welcomeAudio.currentTime = 0;
+      welcomeAudio.play().then(() => {
+        orb.classList.add('speaking');
+      }).catch(err => {
+        speakTextRobust(welcomeMsg.innerText, orb);
+      });
+
+      welcomeAudio.onended = () => {
+        orb.classList.remove('speaking');
+      };
     }
 
     function handleGlobalTouch() {
@@ -683,7 +688,7 @@
         } catch(e) {}
         
         playChime();
-        playAudio(welcomeAudio, welcomeMsg.innerText, orb);
+        playWelcomeAudio();
 
         if (!cameraActive) {
           initCameraRadar();
@@ -781,6 +786,7 @@
       }
     }
 
+    // المرحلة الأولى وتوليد النطق الصوتي للمرحلة الثانية
     function handleCustomerChoice(choice, e) {
       if (e) e.stopPropagation();
       handleGlobalTouch();
@@ -805,10 +811,11 @@
         `;
       }
 
-      speakTTS(textToSay, orb);
+      speakTextRobust(textToSay, orb);
       micLabel.innerText = "تحدث بصوتك أو اختر للإكمال";
     }
 
+    // المرحلة الثانية: التحدث بعبارة التأكيد وتوليد زر الدخول
     function handleStageTwoChoice(categoryKey, e) {
       if (e) e.stopPropagation();
       quickOpts.style.display = 'none';
@@ -817,7 +824,7 @@
 
       const finalSentence = "اختيار رائع وذوق مميز! جهزت لك القطع المناسبة لاختيارك.. تفضل بالدخول";
       welcomeMsg.innerText = finalSentence;
-      speakTTS(finalSentence, orb);
+      speakTextRobust(finalSentence, orb);
 
       let btnLabel = "👉 الدخول واستعراض التشكيلة المختارة";
       if (categoryKey === 'tshirts') btnLabel = "👉 الدخول لاستعراض تيشيرتات السدو والتراث";
@@ -836,21 +843,28 @@
       renderProducts(filterCategory);
     }
 
-    // تفعيل مرحلة التوديع عند تأكيد الطلب
+    // تفعيل التوديع الصوتي
     function triggerFarewell(e) {
       if (e) e.stopPropagation();
       goToStage('farewell');
       playChime();
 
       const farewellPhrase = "تتهنّى بقطعتك يا بعدي، ملبوس العافية والهناء.. شرّفتنا وننتظر شوفتك دايم!";
-      playAudio(goodbyeAudio, farewellPhrase, farewellOrb);
+      
+      // محاولة تشغيل goodbye.mp3 إن وجد، أو استخدام النطق الصوتي المباشر
+      const goodbyeAudio = new Audio('goodbye.mp3');
+      goodbyeAudio.play().then(() => {
+        farewellOrb.classList.add('speaking');
+        goodbyeAudio.onended = () => farewellOrb.classList.remove('speaking');
+      }).catch(() => {
+        speakTextRobust(farewellPhrase, farewellOrb);
+      });
 
-      // إعادة التعيين لوضع الرادار التلقائي بعد 6 ثوانٍ
       setTimeout(() => {
         cart = [];
         updateCartUI();
         goToStage('concierge');
-      }, 6000);
+      }, 6500);
     }
 
     function goToStage(stageName) {
@@ -975,7 +989,7 @@
                 if (!audioUnlocked) {
                   handleGlobalTouch();
                 } else if (welcomeAudio.paused && dialogueStage === 1) {
-                  playAudio(welcomeAudio, welcomeMsg.innerText, orb);
+                  playWelcomeAudio();
                 }
               }
             }
