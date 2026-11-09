@@ -18,6 +18,7 @@
       --text-main: #f5f5f7;
       --text-muted: #9aa0a6;
       --success-green: #34d399;
+      --mic-red: #ef4444;
     }
 
     * {
@@ -117,8 +118,8 @@
 
     .orb-wrapper {
       position: relative;
-      width: 220px;
-      height: 220px;
+      width: 200px;
+      height: 200px;
       margin: 1.5rem auto;
       display: flex;
       align-items: center;
@@ -146,8 +147,8 @@
     }
 
     .ai-orb {
-      width: 120px;
-      height: 120px;
+      width: 110px;
+      height: 110px;
       border-radius: 50%;
       background: radial-gradient(circle at 35% 35%, #eedcb2, var(--accent-gold) 60%, #4a3818 100%);
       box-shadow: 0 0 35px var(--accent-gold-glow);
@@ -166,24 +167,63 @@
     }
 
     .welcome-text {
-      max-width: 650px;
+      max-width: 680px;
       margin: 1.5rem auto;
-      font-size: 1.5rem;
+      font-size: 1.45rem;
       font-weight: 700;
       line-height: 1.8;
       color: var(--text-main);
       min-height: 4.5rem;
     }
 
-    .status-badge {
-      display: inline-block;
+    /* منطقة المايك الصوتي التفاعلي */
+    .mic-control-box {
       margin-top: 0.5rem;
-      padding: 0.4rem 1.2rem;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .mic-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: rgba(197, 160, 89, 0.15);
+      border: 2px solid var(--accent-gold);
       color: var(--accent-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: all 0.3s;
+      outline: none;
+    }
+
+    .mic-btn:hover {
+      background: var(--accent-gold);
+      color: #08090b;
+      transform: scale(1.05);
+    }
+
+    .mic-btn.listening {
+      background: var(--mic-red);
+      border-color: #f87171;
+      color: #fff;
+      animation: micPulse 1.2s infinite;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.7);
+    }
+
+    @keyframes micPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    .mic-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
     }
 
     .single-action-box {
@@ -223,13 +263,13 @@
       gap: 1rem;
       flex-wrap: wrap;
       justify-content: center;
-      margin-top: 1.5rem;
+      margin-top: 1.2rem;
     }
 
     .opt-chip {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 0.8rem 1.5rem;
+      padding: 0.8rem 1.6rem;
       border-radius: 30px;
       color: var(--text-main);
       cursor: pointer;
@@ -421,16 +461,19 @@
         حيّاك الله ونوّرت المكان.. ودك تستكشف التشكيلة الجديدة، ولا نساعدك بطلب معين؟
       </div>
 
-      <div class="status-badge" id="instruction-badge">
-        المس الشاشة في أي مكان لبدء الرادار والصوت
+      <!-- زر المايكروفون الصوتي للعميل -->
+      <div class="mic-control-box">
+        <button class="mic-btn" id="voice-mic-btn" onclick="toggleVoiceRecognition(event)" title="تحدث بصوتك">
+          🎙️
+        </button>
+        <span class="mic-label" id="mic-status-label">انقر وتحدث بصوتك أو اختر من الأسفل</span>
       </div>
 
       <div class="single-action-box" id="action-wrapper" style="display: none;"></div>
 
       <div class="options-row" id="quick-options">
-        <button class="opt-chip" onclick="handleCustomerChoice('new_collection', event)">أحدث التشكيلات والبوكس فيت</button>
-        <button class="opt-chip" onclick="handleCustomerChoice('sizes', event)">عندي طلب معين والمقاسات</button>
-        <button class="opt-chip" onclick="handleCustomerChoice('all', event)">استكشاف الكتالوج كاملاً</button>
+        <button class="opt-chip" onclick="handleCustomerChoice('new_collection', event)">استكشاف التشكيلة الجديدة</button>
+        <button class="opt-chip" onclick="handleCustomerChoice('custom_request', event)">عندي طلب واحتياج معين</button>
       </div>
     </section>
 
@@ -476,7 +519,7 @@
       {
         id: 1,
         title: "تيشيرت Discover Riyadh",
-        category: "new_collection",
+        category: "tshirts",
         price: 199,
         image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80",
         desc: "قصة بوكس فيت ثقيلة، طبعة قصر المصمك، شريحة NFC مدمجة بالسدو."
@@ -484,7 +527,7 @@
       {
         id: 2,
         title: "هودي عِزوة الفاخر",
-        category: "new_collection",
+        category: "hoodies",
         price: 289,
         image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=600&q=80",
         desc: "خامة قطن ثقيل، قصة مريحة وأكمام متناسقة للأجواء الباردة."
@@ -492,7 +535,7 @@
       {
         id: 3,
         title: "تيشيرت الستريت وير الكلاسيكي",
-        category: "sizes",
+        category: "oversized",
         price: 169,
         image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=600&q=80",
         desc: "قصة أوفر سايز راقية، ألوان حبر معتقة وتطريز جانبي دقيق."
@@ -504,8 +547,10 @@
     let cameraActive = false;
     let qrGenerator = null;
     let audioCtx = null;
+    let recognition = null;
+    let isListening = false;
+    let dialogueStage = 1;
 
-    // استدعاء ملف الصوت بالاسم المحدد
     const welcomeAudio = new Audio('welcome-mp3.mp3');
 
     const orb = document.getElementById('voice-orb');
@@ -514,9 +559,9 @@
     const quickOpts = document.getElementById('quick-options');
     const dot = document.getElementById('radar-status-dot');
     const statusText = document.getElementById('radar-status-text');
-    const badge = document.getElementById('instruction-badge');
+    const micBtn = document.getElementById('voice-mic-btn');
+    const micLabel = document.getElementById('mic-status-label');
 
-    // تشغيل الصوت المباشر من ملف MP3
     function playWelcomeAudio() {
       welcomeAudio.currentTime = 0;
       welcomeAudio.play().then(() => {
@@ -540,7 +585,6 @@
         
         playChime();
         playWelcomeAudio();
-        badge.innerText = "الرادار والصوت في وضع الاستعداد";
 
         if (!cameraActive) {
           initCameraRadar();
@@ -564,30 +608,125 @@
       } catch (e) {}
     }
 
-    function handleCustomerChoice(choice, e) {
+    // إعداد المايكروفون ومحرك التعرف الصوتي
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        micBtn.style.display = 'none';
+        micLabel.innerText = "اختر باللمس من الخيارات أدناه";
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ar-SA';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isListening = true;
+        micBtn.classList.add('listening');
+        micLabel.innerText = "أستمع إليك الآن.. تفضل بالتحدث";
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.trim().toLowerCase();
+        micLabel.innerText = `سمعتك تقول: "${transcript}"`;
+        processVoiceInput(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        isListening = false;
+        micBtn.classList.remove('listening');
+        micLabel.innerText = "انقر وتحدث بصوتك أو اختر من الأسفل";
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        micBtn.classList.remove('listening');
+      };
+    }
+
+    function toggleVoiceRecognition(e) {
       if (e) e.stopPropagation();
       handleGlobalTouch();
 
-      quickOpts.style.display = 'none';
-      let confirmMsg = "";
-      let btnLabel = "";
+      if (!recognition) initSpeechRecognition();
+      if (!recognition) return;
 
-      if (choice === 'new_collection') {
-        confirmMsg = "أبشر، جهزت لك أحدث تشكيلاتنا بقصات البوكس فيت والستريت وير.. تفضل";
-        btnLabel = "👉 الدخول لاستعراض التشكيلة الجديدة";
-      } else if (choice === 'sizes') {
-        confirmMsg = "سم وأبشر، هذي خياراتنا والقصات المتوفرة.. تفضل معي";
-        btnLabel = "👉 الدخول واستكشاف القصات والمقاسات";
+      if (isListening) {
+        recognition.stop();
       } else {
-        confirmMsg = "على الرحب والسعة، تفضل لاستعراض كافة القطع";
-        btnLabel = "👉 الدخول إلى المعرض بالكامل";
+        try {
+          recognition.start();
+        } catch(err) {
+          console.warn(err);
+        }
       }
+    }
 
-      welcomeMsg.innerText = confirmMsg;
+    // تحليل كلام العميل وتوجيهه ذكياً
+    function processVoiceInput(text) {
+      playChime();
+      if (dialogueStage === 1) {
+        if (text.includes("جديد") || text.includes("تشكيل") || text.includes("استكشاف") || text.includes("كولكشن")) {
+          handleCustomerChoice('new_collection');
+        } else if (text.includes("طلب") || text.includes("معين") || text.includes("مقاس") || text.includes("قص") || text.includes("تيشيرت") || text.includes("هودي")) {
+          handleCustomerChoice('custom_request');
+        } else {
+          handleCustomerChoice('new_collection');
+        }
+      } else if (dialogueStage === 2) {
+        if (text.includes("هودي") || text.includes("شتوي") || text.includes("جاكيت")) {
+          handleStageTwoChoice('hoodies');
+        } else if (text.includes("سدو") || text.includes("تراث") || text.includes("تيشيرت")) {
+          handleStageTwoChoice('tshirts');
+        } else if (text.includes("واسع") || text.includes("اوفر") || text.includes("بوكس")) {
+          handleStageTwoChoice('oversized');
+        } else {
+          handleStageTwoChoice('all');
+        }
+      }
+    }
+
+    // المرحلة الأولى من الحوار
+    function handleCustomerChoice(choice, e) {
+      if (e) e.stopPropagation();
+      handleGlobalTouch();
+      dialogueStage = 2;
       playChime();
 
+      if (choice === 'new_collection') {
+        welcomeMsg.innerText = "يا هلا والله.. التشكيلة هذي تميزت بقصات البوكس فيت والستريت وير الفاخر. تحب نركز على التيشيرتات بتطريزات السدو والتراث، ولا الهوديات الثقيلة؟";
+        quickOpts.innerHTML = `
+          <button class="opt-chip" onclick="handleStageTwoChoice('tshirts', event)">تيشيرتات البوكس فيت (سدو وتراث)</button>
+          <button class="opt-chip" onclick="handleStageTwoChoice('hoodies', event)">الهوديات الشتوية الفاخرة</button>
+        `;
+      } else {
+        welcomeMsg.innerText = "سم وأبشر.. وش المناسبة أو الستايل اللي تفضله أكثر؟ قصة واسعة كاجوال (Oversized) ولا نساعدك في تحديد المقاس؟";
+        quickOpts.innerHTML = `
+          <button class="opt-chip" onclick="handleStageTwoChoice('oversized', event)">قصة واسعة مريحة (Oversized)</button>
+          <button class="opt-chip" onclick="handleStageTwoChoice('sizes_help', event)">استعراض المقاسات والتفاصيل</button>
+        `;
+      }
+      micLabel.innerText = "تحدث بصوتك أو اختر للإكمال";
+    }
+
+    // المرحلة الثانية: توليد الزر النهائي
+    function handleStageTwoChoice(categoryKey, e) {
+      if (e) e.stopPropagation();
+      quickOpts.style.display = 'none';
+      micBtn.parentElement.style.display = 'none';
+      playChime();
+
+      welcomeMsg.innerText = "اختيار رائع وذوق مميز! جهزت لك القطع المناسبة لاختيارك.. تفضل بالدخول";
+
+      let btnLabel = "👉 الدخول واستعراض التشكيلة المختارة";
+      if (categoryKey === 'tshirts') btnLabel = "👉 الدخول لاستعراض تيشيرتات السدو والتراث";
+      if (categoryKey === 'hoodies') btnLabel = "👉 الدخول لاستعراض الهوديات الفاخرة";
+      if (categoryKey === 'oversized') btnLabel = "👉 الدخول لاستعراض قصات الأوفر سايز";
+
       actionWrapper.innerHTML = `
-        <button class="custom-action-btn" onclick="openShowroom('${choice}', event)">${btnLabel}</button>
+        <button class="custom-action-btn" onclick="openShowroom('${categoryKey}', event)">${btnLabel}</button>
       `;
       actionWrapper.style.display = 'flex';
     }
@@ -602,9 +741,16 @@
       document.querySelectorAll('.view-stage').forEach(el => el.classList.remove('active'));
       if (stageName === 'concierge') {
         document.getElementById('stage-concierge').classList.add('active');
+        dialogueStage = 1;
         quickOpts.style.display = 'flex';
+        quickOpts.innerHTML = `
+          <button class="opt-chip" onclick="handleCustomerChoice('new_collection', event)">استكشاف التشكيلة الجديدة</button>
+          <button class="opt-chip" onclick="handleCustomerChoice('custom_request', event)">عندي طلب واحتياج معين</button>
+        `;
+        micBtn.parentElement.style.display = 'flex';
         actionWrapper.style.display = 'none';
         welcomeMsg.innerText = "حيّاك الله ونوّرت المكان.. ودك تستكشف التشكيلة الجديدة، ولا نساعدك بطلب معين؟";
+        micLabel.innerText = "انقر وتحدث بصوتك أو اختر من الأسفل";
       } else {
         document.getElementById('stage-showroom').classList.add('active');
       }
@@ -615,7 +761,7 @@
       container.innerHTML = '';
       
       catalog.forEach(item => {
-        const isMatched = (filter === 'all' || item.category === filter);
+        const isMatched = (filter === 'all' || filter === 'sizes_help' || item.category === filter);
         const card = document.createElement('div');
         card.className = `product-card ${isMatched ? 'highlight' : ''}`;
         card.innerHTML = `
@@ -708,13 +854,10 @@
               }
               const score = diff / (canvas.width * canvas.height);
               
-              // عند رصد اقتراب أو حركة كافية أمام الشاشة
               if (score > 16) {
                 if (!audioUnlocked) {
                   handleGlobalTouch();
-                } else if (!welcomeAudio.paused) {
-                  // إذا كان الصوت يعمل بالفعل لا نقوم بإعادته لتجنب التكرار
-                } else {
+                } else if (welcomeAudio.paused && dialogueStage === 1) {
                   playWelcomeAudio();
                 }
               }
@@ -731,6 +874,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       updateCartUI();
+      initSpeechRecognition();
       initCameraRadar();
     });
   </script>
