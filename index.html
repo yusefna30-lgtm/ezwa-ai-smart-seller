@@ -107,6 +107,7 @@
       to { opacity: 1; transform: scale(1); }
     }
 
+    /* شاشة المحادثة والاستقبال */
     #stage-concierge {
       flex-direction: column;
       align-items: center;
@@ -281,6 +282,7 @@
       background: rgba(197, 160, 89, 0.15);
     }
 
+    /* صالة العرض */
     #stage-showroom {
       flex-direction: column;
       padding: 2rem;
@@ -451,6 +453,7 @@
       box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
     }
 
+    /* شاشة التوديع */
     #stage-farewell {
       flex-direction: column;
       align-items: center;
@@ -622,8 +625,8 @@
     let isListening = false;
     let dialogueStage = 1;
 
-    // كائن ملف الترحيب المعتمد
-    const welcomeAudio = new Audio('welcome-mp3.mp3');
+    // مشغل الصوت الرئيسي لملفات الـ MP3
+    let currentAudio = null;
 
     const orb = document.getElementById('voice-orb');
     const farewellOrb = document.getElementById('farewell-orb');
@@ -635,47 +638,22 @@
     const micBtn = document.getElementById('voice-mic-btn');
     const micLabel = document.getElementById('mic-status-label');
 
-    // محرك نطق مستقر ومحمي من التوقف
-    function speakTextRobust(text, targetOrb) {
-      if (!('speechSynthesis' in window)) return;
+    // دالة تشغيل أي ملف صوتي MP3 مع توهج الكرة
+    function playMp3Track(filename, targetOrb) {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
 
-      // إنهاء أي نطق سابق معلق
-      window.speechSynthesis.cancel();
-
-      setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ar-SA';
-        utterance.rate = 0.95;
-
-        // اختيار أفضل صوت عربي متاح في النظام
-        const voices = window.speechSynthesis.getVoices();
-        const arVoice = voices.find(v => v.lang.startsWith('ar') || v.lang.includes('SA'));
-        if (arVoice) utterance.voice = arVoice;
-
-        utterance.onstart = () => {
-          if (targetOrb) targetOrb.classList.add('speaking');
-        };
-        utterance.onend = () => {
-          if (targetOrb) targetOrb.classList.remove('speaking');
-        };
-        utterance.onerror = () => {
-          if (targetOrb) targetOrb.classList.remove('speaking');
-        };
-
-        window.speechSynthesis.speak(utterance);
-      }, 50);
-    }
-
-    function playWelcomeAudio() {
-      welcomeAudio.currentTime = 0;
-      welcomeAudio.play().then(() => {
-        orb.classList.add('speaking');
+      currentAudio = new Audio(filename);
+      currentAudio.play().then(() => {
+        if (targetOrb) targetOrb.classList.add('speaking');
       }).catch(err => {
-        speakTextRobust(welcomeMsg.innerText, orb);
+        console.error("Playback error:", filename, err);
       });
 
-      welcomeAudio.onended = () => {
-        orb.classList.remove('speaking');
+      currentAudio.onended = () => {
+        if (targetOrb) targetOrb.classList.remove('speaking');
       };
     }
 
@@ -688,7 +666,7 @@
         } catch(e) {}
         
         playChime();
-        playWelcomeAudio();
+        playMp3Track('welcome-mp3.mp3', orb);
 
         if (!cameraActive) {
           initCameraRadar();
@@ -786,45 +764,44 @@
       }
     }
 
-    // المرحلة الأولى وتوليد النطق الصوتي للمرحلة الثانية
+    // المرحلة الأولى: تشغيل ملف الصوت المخصص للمرحلة الثانية
     function handleCustomerChoice(choice, e) {
       if (e) e.stopPropagation();
       handleGlobalTouch();
       dialogueStage = 2;
       playChime();
 
-      let textToSay = "";
-
       if (choice === 'new_collection') {
-        textToSay = "يا هلا والله.. التشكيلة هذي تميزت بقصات البوكس فيت والستريت وير الفاخر. تحب نركز على التيشيرتات بتطريزات السدو والتراث، ولا الهوديات الثقيلة؟";
-        welcomeMsg.innerText = textToSay;
+        welcomeMsg.innerText = "يا هلا والله.. التشكيلة هذي تميزت بقصات البوكس فيت والستريت وير الفاخر. تحب نركز على التيشيرتات بتطريزات السدو والتراث، ولا الهوديات الثقيلة؟";
         quickOpts.innerHTML = `
           <button class="opt-chip" onclick="handleStageTwoChoice('tshirts', event)">تيشيرتات البوكس فيت (سدو وتراث)</button>
           <button class="opt-chip" onclick="handleStageTwoChoice('hoodies', event)">الهوديات الشتوية الفاخرة</button>
         `;
+        // تشغيل الملف المرفوع للمسار الأول
+        playMp3Track('step2-new.mp3', orb);
       } else {
-        textToSay = "أبشر بعزك.. وش المناسبة أو الستايل اللي تفضله أكثر؟ قصة واسعة كاجوال (Oversized) ولا نساعدك في تحديد المقاس؟";
-        welcomeMsg.innerText = textToSay;
+        welcomeMsg.innerText = "أبشر بعزك.. وش المناسبة أو الستايل اللي تفضله أكثر؟ قصة واسعة كاجوال (Oversized) ولا نساعدك في تحديد المقاس؟";
         quickOpts.innerHTML = `
           <button class="opt-chip" onclick="handleStageTwoChoice('oversized', event)">قصة واسعة مريحة (Oversized)</button>
           <button class="opt-chip" onclick="handleStageTwoChoice('sizes_help', event)">استعراض المقاسات والتفاصيل</button>
         `;
+        // تشغيل الملف المرفوع للمسار الثاني
+        playMp3Track('step2-custom.mp3', orb);
       }
-
-      speakTextRobust(textToSay, orb);
       micLabel.innerText = "تحدث بصوتك أو اختر للإكمال";
     }
 
-    // المرحلة الثانية: التحدث بعبارة التأكيد وتوليد زر الدخول
+    // المرحلة الثانية: تشغيل ملف التأكيد وتوليد الزر النهائي
     function handleStageTwoChoice(categoryKey, e) {
       if (e) e.stopPropagation();
       quickOpts.style.display = 'none';
       micBtn.parentElement.style.display = 'none';
       playChime();
 
-      const finalSentence = "اختيار رائع وذوق مميز! جهزت لك القطع المناسبة لاختيارك.. تفضل بالدخول";
-      welcomeMsg.innerText = finalSentence;
-      speakTextRobust(finalSentence, orb);
+      welcomeMsg.innerText = "اختيار رائع وذوق مميز! جهزت لك القطع المناسبة لاختيارك.. تفضل بالدخول";
+      
+      // تشغيل ملف الاستعداد للدخول
+      playMp3Track('step3-ready.mp3', orb);
 
       let btnLabel = "👉 الدخول واستعراض التشكيلة المختارة";
       if (categoryKey === 'tshirts') btnLabel = "👉 الدخول لاستعراض تيشيرتات السدو والتراث";
@@ -843,22 +820,14 @@
       renderProducts(filterCategory);
     }
 
-    // تفعيل التوديع الصوتي
+    // تشغيل ملف التوديع عند تأكيد الطلب
     function triggerFarewell(e) {
       if (e) e.stopPropagation();
       goToStage('farewell');
       playChime();
 
-      const farewellPhrase = "تتهنّى بقطعتك يا بعدي، ملبوس العافية والهناء.. شرّفتنا وننتظر شوفتك دايم!";
-      
-      // محاولة تشغيل goodbye.mp3 إن وجد، أو استخدام النطق الصوتي المباشر
-      const goodbyeAudio = new Audio('goodbye.mp3');
-      goodbyeAudio.play().then(() => {
-        farewellOrb.classList.add('speaking');
-        goodbyeAudio.onended = () => farewellOrb.classList.remove('speaking');
-      }).catch(() => {
-        speakTextRobust(farewellPhrase, farewellOrb);
-      });
+      // تشغيل ملف التوديع goodbye.mp3
+      playMp3Track('goodbye.mp3', farewellOrb);
 
       setTimeout(() => {
         cart = [];
@@ -988,8 +957,8 @@
               if (score > 16) {
                 if (!audioUnlocked) {
                   handleGlobalTouch();
-                } else if (welcomeAudio.paused && dialogueStage === 1) {
-                  playWelcomeAudio();
+                } else if (currentAudio && currentAudio.paused && dialogueStage === 1) {
+                  playMp3Track('welcome-mp3.mp3', orb);
                 }
               }
             }
