@@ -107,6 +107,7 @@
       to { opacity: 1; transform: scale(1); }
     }
 
+    /* واجهة الاستقبال والكرة الذكية */
     #stage-concierge {
       flex-direction: column;
       align-items: center;
@@ -126,7 +127,6 @@
       justify-content: center;
     }
 
-    /* دوائر الهالة وموجات الرادار المتدفقة */
     .radar-ring {
       position: absolute;
       width: 100%;
@@ -153,7 +153,6 @@
       }
     }
 
-    /* الكرة الذهبية مع النبض والهالة المستمرة */
     .ai-orb {
       width: 110px;
       height: 110px;
@@ -306,6 +305,7 @@
       background: rgba(197, 160, 89, 0.15);
     }
 
+    /* صالة العرض وأشرطة الفلترة */
     #stage-showroom {
       flex-direction: column;
       padding: 2rem;
@@ -317,7 +317,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1.2rem;
     }
 
     .back-btn {
@@ -328,6 +328,40 @@
       border-radius: 20px;
       cursor: pointer;
       font-size: 0.95rem;
+    }
+
+    .categories-bar {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .cat-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.6rem 1.2rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.25s;
+    }
+
+    .cat-btn:hover {
+      color: #fff;
+      border-color: var(--accent-gold);
+    }
+
+    .cat-btn.active {
+      background: var(--accent-gold);
+      color: #08090b;
+      font-weight: 700;
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 15px var(--accent-gold-glow);
     }
 
     .products-grid {
@@ -476,6 +510,7 @@
       box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
     }
 
+    /* شاشة التوديع */
     #stage-farewell {
       flex-direction: column;
       align-items: center;
@@ -532,6 +567,7 @@
   </header>
 
   <div class="stage-container">
+    <!-- المرحلة 1: الاستقبال والمحادثة مع المستشار -->
     <section id="stage-concierge" class="view-stage active">
       <div class="orb-wrapper" id="orb-trigger">
         <div class="radar-ring"></div>
@@ -558,13 +594,23 @@
       </div>
     </section>
 
+    <!-- المرحلة 2: صالة العرض مع الأقسام الأربعة -->
     <section id="stage-showroom" class="view-stage">
       <div class="showroom-header">
         <div>
           <h2 style="font-size: 1.5rem;">صالة عرض المنتجات</h2>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">اختر قطعك لمسح الباركود وتأكيد الطلب بواتساب</p>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">تصفح حسب القسم، اختر قطعك، وامسح الباركود للطلب المباشر</p>
         </div>
         <button class="back-btn" onclick="goToStage('concierge')">الرجوع للاستقبال</button>
+      </div>
+
+      <!-- شريط فلترة الأقسام تحت العنوان وفوق المنتجات -->
+      <div class="categories-bar">
+        <button class="cat-btn active" onclick="filterByTab('all', this)">الكل</button>
+        <button class="cat-btn" onclick="filterByTab('riyadh', this)">سلسلة اكتشف الرياض</button>
+        <button class="cat-btn" onclick="filterByTab('nfc_cards', this)">حلول وبطاقات NFC الذكية</button>
+        <button class="cat-btn" onclick="filterByTab('hoodies', this)">الهوديات الفاخرة</button>
+        <button class="cat-btn" onclick="filterByTab('streetwear', this)">تيشيرتات ستريت وير</button>
       </div>
 
       <div class="products-grid" id="products-list"></div>
@@ -588,6 +634,7 @@
       </div>
     </section>
 
+    <!-- المرحلة 3: شاشة التوديع -->
     <section id="stage-farewell" class="view-stage">
       <div class="farewell-card">
         <div class="orb-wrapper" style="width: 140px; height: 140px; margin: 0 auto 1.5rem auto;">
@@ -609,33 +656,50 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
   <script>
-    // رقم الواتساب المعتمد للمتجر
+    // رقم الواتساب المعتمد
     const STORE_WHATSAPP_NUMBER = "966502777884";
 
+    // كتالوج المنتجات موزع حسب الأقسام الأربعة
     const catalog = [
       {
         id: 1,
-        title: "تيشيرت Discover Riyadh",
-        category: "tshirts",
-        price: 199,
+        title: "تيشيرت قصر المصمك | اكتشف الرياض",
+        category: "riyadh",
+        price: 240,
         image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80",
-        desc: "قصة بوكس فيت ثقيلة، طبعة قصر المصمك، شريحة NFC مدمجة بالسدو."
+        desc: "الإصدار الأول: قصة بوكس فيت ثقيلة، طبعة قصر المصمك التراثية، وشريحة NFC تفاعلية مدمجة بالسدو."
       },
       {
         id: 2,
-        title: "هودي عِزوة الفاخر",
-        category: "hoodies",
-        price: 289,
-        image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=600&q=80",
-        desc: "خامة قطن ثقيل، قصة مريحة وأكمام متناسقة للأجواء الباردة."
+        title: "بطاقة الأعمال الرقمية الذكية (Smart NFC Card)",
+        category: "nfc_cards",
+        price: 150,
+        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80",
+        desc: "بطاقة معدنية فاخرة مدمجة بشريحة NFC، تشارك بياناتك وروابطك الذكية بلمسة واحدة على الجوال."
       },
       {
         id: 3,
-        title: "تيشيرت الستريت وير الكلاسيكي",
-        category: "oversized",
-        price: 169,
+        title: "تصريح الزوار وتجربة الفعاليات (Visitor & Event Pass)",
+        category: "nfc_cards",
+        price: 180,
+        image: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=600&q=80",
+        desc: "بطاقة تفاعلية مخصصة للمعارض والزوار تفتح دليلاً رقمياً، روابط الضيافة، وتجارب تفاعلية فريدة."
+      },
+      {
+        id: 4,
+        title: "هودي عِزوة الفاخر (Heavyweight Hoodie)",
+        category: "hoodies",
+        price: 295,
+        image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=600&q=80",
+        desc: "خامة قطن ثقيل عالي الجودة، قصة مريحة وأكمام متناسقة للأجواء الشتوية مع لمسات عِزوة الفاخرة."
+      },
+      {
+        id: 5,
+        title: "تيشيرت الأوفر سايز الكلاسيكي (Oversized Streetwear)",
+        category: "streetwear",
+        price: 175,
         image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=600&q=80",
-        desc: "قصة أوفر سايز راقية، ألوان حبر معتقة وتطريز جانبي دقيق."
+        desc: "قصة واسعة مريحة كاجوال، خامة قطنية ممتازة للاستخدام اليومي بتطريز أنيق يعكس هوية الشارع."
       }
     ];
 
@@ -647,6 +711,7 @@
     let recognition = null;
     let isListening = false;
     let dialogueStage = 1;
+    let currentFilter = 'all';
 
     let currentAudio = null;
 
@@ -660,6 +725,7 @@
     const micBtn = document.getElementById('voice-mic-btn');
     const micLabel = document.getElementById('mic-status-label');
 
+    // تشغيل ملفات الـ MP3 المرفوعة
     function playMp3Track(filename, targetOrb) {
       if (currentAudio) {
         currentAudio.pause();
@@ -775,12 +841,14 @@
           handleCustomerChoice('custom_request');
         }
       } else if (dialogueStage === 2) {
-        if (text.includes("هودي") || text.includes("شتوي")) {
+        if (text.includes("رياض") || text.includes("مصمك") || text.includes("سدو")) {
+          handleStageTwoChoice('riyadh');
+        } else if (text.includes("بطاق") || text.includes("nfc") || text.includes("حلول")) {
+          handleStageTwoChoice('nfc_cards');
+        } else if (text.includes("هودي") || text.includes("شتوي")) {
           handleStageTwoChoice('hoodies');
-        } else if (text.includes("سدو") || text.includes("تراث") || text.includes("تيشيرت")) {
-          handleStageTwoChoice('tshirts');
         } else {
-          handleStageTwoChoice('oversized');
+          handleStageTwoChoice('streetwear');
         }
       }
     }
@@ -794,15 +862,16 @@
       if (choice === 'new_collection') {
         welcomeMsg.innerText = "يا هلا والله.. التشكيلة هذي تميزت بقصات البوكس فيت والستريت وير الفاخر. تحب نركز على التيشيرتات بتطريزات السدو والتراث، ولا الهوديات الثقيلة؟";
         quickOpts.innerHTML = `
-          <button class="opt-chip" onclick="handleStageTwoChoice('tshirts', event)">تيشيرتات البوكس فيت (سدو وتراث)</button>
-          <button class="opt-chip" onclick="handleStageTwoChoice('hoodies', event)">الهوديات الشتوية الفاخرة</button>
+          <button class="opt-chip" onclick="handleStageTwoChoice('riyadh', event)">سلسلة اكتشف الرياض (المصمك)</button>
+          <button class="opt-chip" onclick="handleStageTwoChoice('nfc_cards', event)">حلول وبطاقات NFC الذكية</button>
+          <button class="opt-chip" onclick="handleStageTwoChoice('hoodies', event)">الهوديات الفاخرة</button>
         `;
         playMp3Track('step2-new.mp3', orb);
       } else {
         welcomeMsg.innerText = "أبشر بعزك.. وش المناسبة أو الستايل اللي تفضله أكثر؟ قصة واسعة كاجوال (Oversized) ولا نساعدك في تحديد المقاس؟";
         quickOpts.innerHTML = `
-          <button class="opt-chip" onclick="handleStageTwoChoice('oversized', event)">قصة واسعة مريحة (Oversized)</button>
-          <button class="opt-chip" onclick="handleStageTwoChoice('sizes_help', event)">استعراض المقاسات والتفاصيل</button>
+          <button class="opt-chip" onclick="handleStageTwoChoice('streetwear', event)">قصات الأوفر سايز الكاجوال</button>
+          <button class="opt-chip" onclick="handleStageTwoChoice('nfc_cards', event)">بطاقات الأعمال والفعاليات</button>
         `;
         playMp3Track('step2-custom.mp3', orb);
       }
@@ -818,10 +887,11 @@
       welcomeMsg.innerText = "اختيار رائع وذوق مميز! جهزت لك القطع المناسبة لاختيارك.. تفضل بالدخول";
       playMp3Track('step3-ready.mp3', orb);
 
-      let btnLabel = "👉 الدخول واستعراض التشكيلة المختارة";
-      if (categoryKey === 'tshirts') btnLabel = "👉 الدخول لاستعراض تيشيرتات السدو والتراث";
+      let btnLabel = "👉 الدخول واستعراض المعرض";
+      if (categoryKey === 'riyadh') btnLabel = "👉 الدخول لاستعراض سلسلة اكتشف الرياض (المصمك)";
+      if (categoryKey === 'nfc_cards') btnLabel = "👉 الدخول لاستعراض حلول وبطاقات NFC الذكية";
       if (categoryKey === 'hoodies') btnLabel = "👉 الدخول لاستعراض الهوديات الفاخرة";
-      if (categoryKey === 'oversized') btnLabel = "👉 الدخول لاستعراض قصات الأوفر سايز";
+      if (categoryKey === 'streetwear') btnLabel = "👉 الدخول لاستعراض تيشيرتات الستريت وير";
 
       actionWrapper.innerHTML = `
         <button class="custom-action-btn" onclick="openShowroom('${categoryKey}', event)">${btnLabel}</button>
@@ -832,42 +902,27 @@
     function openShowroom(filterCategory, e) {
       if (e) e.stopPropagation();
       goToStage('showroom');
-      renderProducts(filterCategory);
+      applyCategoryTab(filterCategory);
     }
 
-    function triggerFarewell(e) {
-      if (e) e.stopPropagation();
-      goToStage('farewell');
-      playChime();
-
-      playMp3Track('goodbye.mp3', farewellOrb);
-
-      setTimeout(() => {
-        cart = [];
-        updateCartUI();
-        goToStage('concierge');
-      }, 6500);
+    // تصفية المنتجات عند النقر على الأقسام العلوية
+    function filterByTab(categoryKey, btnElement) {
+      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+      if (btnElement) btnElement.classList.add('active');
+      renderProducts(categoryKey);
     }
 
-    function goToStage(stageName) {
-      document.querySelectorAll('.view-stage').forEach(el => el.classList.remove('active'));
-      if (stageName === 'concierge') {
-        document.getElementById('stage-concierge').classList.add('active');
-        dialogueStage = 1;
-        quickOpts.style.display = 'flex';
-        quickOpts.innerHTML = `
-          <button class="opt-chip" onclick="handleCustomerChoice('new_collection', event)">استكشاف التشكيلة الجديدة</button>
-          <button class="opt-chip" onclick="handleCustomerChoice('custom_request', event)">عندي طلب واحتياج معين</button>
-        `;
-        micBtn.parentElement.style.display = 'flex';
-        actionWrapper.style.display = 'none';
-        welcomeMsg.innerText = "حيّاك الله ونوّرت المكان.. ودك تستكشف التشكيلة الجديدة، ولا نساعدك بطلب معين؟";
-        micLabel.innerText = "انقر وتحدث بصوتك أو اختر من الأسفل";
-      } else if (stageName === 'showroom') {
-        document.getElementById('stage-showroom').classList.add('active');
-      } else if (stageName === 'farewell') {
-        document.getElementById('stage-farewell').classList.add('active');
-      }
+    function applyCategoryTab(categoryKey) {
+      const buttons = document.querySelectorAll('.cat-btn');
+      buttons.forEach(b => {
+        b.classList.remove('active');
+        if (categoryKey === 'riyadh' && b.innerText.includes('اكتشف الرياض')) b.classList.add('active');
+        else if (categoryKey === 'nfc_cards' && b.innerText.includes('NFC')) b.classList.add('active');
+        else if (categoryKey === 'hoodies' && b.innerText.includes('الهوديات')) b.classList.add('active');
+        else if (categoryKey === 'streetwear' && b.innerText.includes('ستريت')) b.classList.add('active');
+        else if (categoryKey === 'all' && b.innerText === 'الكل') b.classList.add('active');
+      });
+      renderProducts(categoryKey);
     }
 
     function renderProducts(filter) {
@@ -875,7 +930,7 @@
       container.innerHTML = '';
       
       catalog.forEach(item => {
-        const isMatched = (filter === 'all' || filter === 'sizes_help' || item.category === filter);
+        const isMatched = (filter === 'all' || item.category === filter);
         const card = document.createElement('div');
         card.className = `product-card ${isMatched ? 'highlight' : ''}`;
         card.innerHTML = `
@@ -939,6 +994,41 @@
         });
       } else {
         qrGenerator.value = whatsappURL;
+      }
+    }
+
+    function triggerFarewell(e) {
+      if (e) e.stopPropagation();
+      goToStage('farewell');
+      playChime();
+
+      playMp3Track('goodbye.mp3', farewellOrb);
+
+      setTimeout(() => {
+        cart = [];
+        updateCartUI();
+        goToStage('concierge');
+      }, 6500);
+    }
+
+    function goToStage(stageName) {
+      document.querySelectorAll('.view-stage').forEach(el => el.classList.remove('active'));
+      if (stageName === 'concierge') {
+        document.getElementById('stage-concierge').classList.add('active');
+        dialogueStage = 1;
+        quickOpts.style.display = 'flex';
+        quickOpts.innerHTML = `
+          <button class="opt-chip" onclick="handleCustomerChoice('new_collection', event)">استكشاف التشكيلة الجديدة</button>
+          <button class="opt-chip" onclick="handleCustomerChoice('custom_request', event)">عندي طلب واحتياج معين</button>
+        `;
+        micBtn.parentElement.style.display = 'flex';
+        actionWrapper.style.display = 'none';
+        welcomeMsg.innerText = "حيّاك الله ونوّرت المكان.. ودك تستكشف التشكيلة الجديدة، ولا نساعدك بطلب معين؟";
+        micLabel.innerText = "انقر وتحدث بصوتك أو اختر من الأسفل";
+      } else if (stageName === 'showroom') {
+        document.getElementById('stage-showroom').classList.add('active');
+      } else if (stageName === 'farewell') {
+        document.getElementById('stage-farewell').classList.add('active');
       }
     }
 
