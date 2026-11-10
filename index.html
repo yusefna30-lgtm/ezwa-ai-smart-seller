@@ -305,7 +305,7 @@
       background: rgba(197, 160, 89, 0.15);
     }
 
-    /* صالة العرض وأشرطة الفلترة */
+    /* صالة العرض */
     #stage-showroom {
       flex-direction: column;
       padding: 2rem;
@@ -604,7 +604,6 @@
         <button class="back-btn" onclick="goToStage('concierge')">الرجوع للاستقبال</button>
       </div>
 
-      <!-- شريط فلترة الأقسام تحت العنوان وفوق المنتجات -->
       <div class="categories-bar">
         <button class="cat-btn active" onclick="filterByTab('all', this)">الكل</button>
         <button class="cat-btn" onclick="filterByTab('riyadh', this)">سلسلة اكتشف الرياض</button>
@@ -656,10 +655,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
   <script>
-    // رقم الواتساب المعتمد
     const STORE_WHATSAPP_NUMBER = "966502777884";
 
-    // كتالوج المنتجات موزع حسب الأقسام الأربعة
     const catalog = [
       {
         id: 1,
@@ -711,7 +708,6 @@
     let recognition = null;
     let isListening = false;
     let dialogueStage = 1;
-    let currentFilter = 'all';
 
     let currentAudio = null;
 
@@ -725,7 +721,6 @@
     const micBtn = document.getElementById('voice-mic-btn');
     const micLabel = document.getElementById('mic-status-label');
 
-    // تشغيل ملفات الـ MP3 المرفوعة
     function playMp3Track(filename, targetOrb) {
       if (currentAudio) {
         currentAudio.pause();
@@ -853,6 +848,7 @@
       }
     }
 
+    // إظهار الأقسام الأربعة كأزرار خيارات تحت المايكروفون مباشرة
     function handleCustomerChoice(choice, e) {
       if (e) e.stopPropagation();
       handleGlobalTouch();
@@ -861,20 +857,20 @@
 
       if (choice === 'new_collection') {
         welcomeMsg.innerText = "يا هلا والله.. التشكيلة هذي تميزت بقصات البوكس فيت والستريت وير الفاخر. تحب نركز على التيشيرتات بتطريزات السدو والتراث، ولا الهوديات الثقيلة؟";
-        quickOpts.innerHTML = `
-          <button class="opt-chip" onclick="handleStageTwoChoice('riyadh', event)">سلسلة اكتشف الرياض (المصمك)</button>
-          <button class="opt-chip" onclick="handleStageTwoChoice('nfc_cards', event)">حلول وبطاقات NFC الذكية</button>
-          <button class="opt-chip" onclick="handleStageTwoChoice('hoodies', event)">الهوديات الفاخرة</button>
-        `;
         playMp3Track('step2-new.mp3', orb);
       } else {
-        welcomeMsg.innerText = "أبشر بعزك.. وش المناسبة أو الستايل اللي تفضله أكثر؟ قصة واسعة كاجوال (Oversized) ولا نساعدك في تحديد المقاس؟";
-        quickOpts.innerHTML = `
-          <button class="opt-chip" onclick="handleStageTwoChoice('streetwear', event)">قصات الأوفر سايز الكاجوال</button>
-          <button class="opt-chip" onclick="handleStageTwoChoice('nfc_cards', event)">بطاقات الأعمال والفعاليات</button>
-        `;
+        welcomeMsg.innerText = "أبشر بعزك.. اختر القسم اللي يناسب احتياجك أو تفضل بتحديده بصوتك:";
         playMp3Track('step2-custom.mp3', orb);
       }
+
+      // عرض الأقسام الأربعة هنا تحت المايكروفون
+      quickOpts.innerHTML = `
+        <button class="opt-chip" onclick="handleStageTwoChoice('riyadh', event)">سلسلة اكتشف الرياض (المصمك)</button>
+        <button class="opt-chip" onclick="handleStageTwoChoice('nfc_cards', event)">حلول وبطاقات NFC الذكية</button>
+        <button class="opt-chip" onclick="handleStageTwoChoice('hoodies', event)">الهوديات الفاخرة</button>
+        <button class="opt-chip" onclick="handleStageTwoChoice('streetwear', event)">تيشيرتات ستريت وير</button>
+      `;
+
       micLabel.innerText = "تحدث بصوتك أو اختر للإكمال";
     }
 
@@ -905,7 +901,6 @@
       applyCategoryTab(filterCategory);
     }
 
-    // تصفية المنتجات عند النقر على الأقسام العلوية
     function filterByTab(categoryKey, btnElement) {
       document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
       if (btnElement) btnElement.classList.add('active');
